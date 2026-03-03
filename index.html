@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Kartal İftara Ne Kadar Kaldı?</title>
+<style>
+body {
+    margin: 0;
+    padding: 0;
+    font-family: Arial, sans-serif;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background: linear-gradient(to top, #1e3c72, #2a5298);
+    color: #fff;
+    height: 100vh;
+}
+
+h1 {
+    font-size: 50px;
+    margin-bottom: 25px;
+    text-align: center;
+    background: rgba(255, 255, 255, 0.15);
+    padding: 15px 25px;
+    border-radius: 25px;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+}
+
+h2 {
+    font-size: 36px;
+    margin-bottom: 40px;
+    color: #eee;
+    text-align: center;
+    background: rgba(255, 255, 255, 0.15);
+    padding: 15px 30px;
+    border-radius: 25px;
+    backdrop-filter: blur(12px);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+}
+
+#sayac {
+    font-size: 48px;
+    font-weight: bold;
+    margin-top: 10px;
+    background: rgba(255, 255, 255, 0.12);
+    padding: 20px 40px;
+    border-radius: 30px;
+    backdrop-filter: blur(15px);
+    box-shadow: 0 5px 20px rgba(0,0,0,0.25);
+    text-align: center;
+}
+</style>
+</head>
+<body>
+
+<h2>Ömer Faruk tarafından yapıldı</h2>
+<h1>Kartal İftara Ne Kadar Kaldı?</h1>
+<div id="sayac">Yükleniyor...</div>
+
+<script>
+// İstanbul için Aladhan API'den güncel iftar saati alalım
+async function getIftarTime() {
+    try {
+        const today = new Date();
+        const day = today.getDate();
+        const month = today.getMonth() + 1;
+        const year = today.getFullYear();
+        const url = `https://api.aladhan.com/v1/timingsByCity/${day}-${month}-${year}?city=Istanbul&country=Turkey&method=13`;
+        const response = await fetch(url);
+        const data = await response.json();
+        return data.data.timings.Maghrib; // akşam / iftar vakti
+    } catch (e) {
+        console.error("API hatası:", e);
+        return null;
+    }
+}
+
+async function startCountdown() {
+    const maghribTime = await getIftarTime();
+    if (!maghribTime) {
+        document.getElementById("sayac").textContent = "Saat alınamadı!";
+        return;
+    }
+
+    // 1 dakika önde göstermek için bir dakika çıkarıyoruz
+    function update() {
+        const now = new Date();
+        let [h, m] = maghribTime.split(":").map(Number);
+        const iftar = new Date(now.getFullYear(), now.getMonth(), now.getDate(), h, m);
+        let diff = iftar - now - 60000;
+
+        if (diff <= 0) {
+            document.getElementById("sayac").textContent = "İFTAR VAKTİ!";
+            return;
+        }
+
+        const hours = Math.floor(diff / (1000 * 60 * 60));
+        const mins = Math.floor((diff / (1000 * 60)) % 60);
+        const secs = Math.floor((diff / 1000) % 60);
+
+        document.getElementById("sayac").textContent = `${hours} saat ${mins} dakika ${secs} saniye`;
+    }
+
+    update();
+    setInterval(update, 1000);
+}
+
+startCountdown();
+</script>
+
+</body>
+</html>
